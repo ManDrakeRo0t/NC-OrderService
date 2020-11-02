@@ -1,14 +1,19 @@
 package ru.bogatov.orderservice.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import ru.bogatov.orderservice.dto.Customer;
-import ru.bogatov.orderservice.dto.CustomersListDto;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class UserServiceClient {
@@ -21,15 +26,16 @@ public class UserServiceClient {
     }
 
 
-    public List<Customer> getCustomers(){
+    public List<Customer> getCustomers() throws URISyntaxException, JsonProcessingException {
         try{
-            CustomersListDto response = restTemplate.getForObject(new URI(url),CustomersListDto.class);
-            assert response != null;
-            return response.getCustomers();
-        }catch (URISyntaxException e){
+            return new ObjectMapper().readValue(
+                    Objects.requireNonNull(restTemplate.getForObject(new URI(url), String.class))
+                    , new TypeReference<List<Customer>>() { }
+            );
+        } catch (URISyntaxException | JsonProcessingException e){
             e.printStackTrace();
+            throw e;
         }
-        return null;
     }
 
     public Customer getCustomerById(String id) {
@@ -39,6 +45,5 @@ public class UserServiceClient {
             e.printStackTrace();
         }
         return null;
-
     }
 }

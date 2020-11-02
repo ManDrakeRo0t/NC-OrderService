@@ -17,11 +17,10 @@ public class Order {
     private UUID id;
     private String name;
     private Date deliveryDate;
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "status_id")
-    private Status status;
     private UUID customer_id;
     private Boolean paid;
+    @Enumerated(value = EnumType.STRING)
+    private Status status;
 
     public void update(Order order){
         if(order.name != null) this.name = order.name;
