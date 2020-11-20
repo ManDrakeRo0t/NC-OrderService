@@ -1,9 +1,12 @@
 package ru.bogatov.orderservice.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import ru.bogatov.orderservice.dto.Offer;
 import ru.bogatov.orderservice.entity.Order;
 import ru.bogatov.orderservice.service.OrderService;
 
@@ -13,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
+@PreAuthorize("hasAnyAuthority('ADMIN')")
 public class OrderController {
     private OrderService orderService;
 
@@ -21,18 +25,30 @@ public class OrderController {
     }
 
     @GetMapping("")
-    public List<Order> getAll(){
+    public List<Order> getAll()  {
         return orderService.getAll();
     }
 
     @GetMapping("/{id}")
-    public Order getOneById(@PathVariable String id){
-        return orderService.getOneById(id);
+    public ResponseEntity<Order> getOneById(@PathVariable String id){
+        try{
+            return ResponseEntity.ok().body(orderService.getOneById(id));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @PostMapping("/create")
+    public ResponseEntity<Object> createOrder(@RequestHeader(value = "Authorization") String token,
+                                              @RequestBody Offer offer){
+        return orderService.createOrder(token,offer);
+    }
+    @GetMapping("/offer-info/{id}")
+    public ResponseEntity<Offer> getOfferInfo(@PathVariable String id){
+        return orderService.getOfferInfo(id);
     }
     @PostMapping
-    public ResponseEntity<Order> addOrder(@RequestBody Order order){
-        orderService.addOrder(order);
-        return ResponseEntity.status(201).body(new Order());
+    public Order addOrder(@RequestBody Order order){
+        return orderService.addOrder(order);
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> deleteOrder(@PathVariable String id){
@@ -40,7 +56,7 @@ public class OrderController {
             orderService.deleteOrder(id);
             return ResponseEntity.ok("was deleted");
         }catch (RuntimeException e){
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
     @PutMapping("/{id}")
@@ -48,7 +64,7 @@ public class OrderController {
         try {
             return ResponseEntity.ok(orderService.editOrder(id,order));
         }catch (RuntimeException e){
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
     }
@@ -57,8 +73,8 @@ public class OrderController {
         try {
             return ResponseEntity.ok(orderService.editStatus(id,statusId));
         }catch (RuntimeException e){
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-     }
+    } //todo swagger
 
 }

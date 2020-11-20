@@ -10,13 +10,14 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-@Table(name = "my_orders") //todo RestTemplate cleint and roles
+@Table(name = "my_orders")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String name;
     private Date deliveryDate;
+    private UUID offer_id;
     private UUID customer_id;
     private Boolean paid;
     @Enumerated(value = EnumType.STRING)
